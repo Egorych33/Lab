@@ -21,9 +21,9 @@ public class BlackBoxTests
     public void Setup()
     {
         // Выбор тестируемой реализации:
-        _manager = new Lab.Implementations.GenCode1.ColorParser();
+        // _manager = new Lab.Implementations.GenCode1.ColorParser();
         // _manager = new Lab.Implementations.GenCode2.ColorParser();
-        // _manager = new Lab.Implementations.GenCode3.ColorParser();
+         _manager = new Lab.Implementations.GenCode3.ColorParser();
     }
 
     // ------------------------------------------------------------------
