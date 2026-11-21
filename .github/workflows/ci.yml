@@ -1,36 +1,46 @@
-name: .NET CI Pipeline (NUnit)
+name: CI
 
 on:
   push:
-    branches: ["main", "ai-version-1", "ai-version-2", "ai-version-3"]
+    branches: [ main, master ]
   pull_request:
-    branches: ["main"]
   workflow_dispatch:
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          dotnet-version: '10.0.x'
+          python-version: '3.11'
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Generate NUnit Tests
+        run: python generator/gen_tests.py --config config.yaml
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Lab.sln
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build Lab.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal --logger "console;verbosity=detailed"
+        run: dotnet test Lab.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
-      - name: Publish Test Results
-        uses: actions/upload-artifact@v4
+      - name: Upload test results
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: nunit-test-results-${{ github.ref_name }}
-          path: "**/*.trx"
+          name: test-results
+          path: '**/TestResults/*.trx'

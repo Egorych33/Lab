@@ -1,0 +1,135 @@
+module: ColorParser
+
+non_functional_requirements:
+  - id: NFR-1
+    desc: "Все методы — чистые функции, не изменяют состояние"
+  - id: NFR-2
+    desc: "HEX нормализуется к виду #RRGGBB в верхнем регистре"
+  - id: NFR-3
+    desc: "Значения RGB всегда в диапазоне [0, 255]"
+
+methods:
+  # ============================================================
+  # 1. HexToRgb
+  # ============================================================
+  - name: HexToRgb
+    req_functional: ["1"]
+    req_non_functional: ["NFR-2", "NFR-3"]
+    signature: "string HexToRgb(string hex)"
+    pre: "hex != null && !string.IsNullOrWhiteSpace(hex) && hex — валидный HEX"
+    post: "Возвращает строку вида 'rgb(R, G, B)' с десятичными компонентами"
+    equivalence_classes:
+      - case: "Валидный 6-значный HEX"
+        inputs: ["#FF0000"]
+        expected: "\"rgb(255, 0, 0)\""
+      - case: "Валидный 3-значный HEX"
+        inputs: ["#F00"]
+        expected: "\"rgb(255, 0, 0)\""
+      - case: "HEX без решётки"
+        inputs: ["00FF00"]
+        expected: "\"rgb(0, 255, 0)\""
+      - case: "Null"
+        inputs: [null]
+        expected: "ArgumentException"
+      - case: "Пустая строка"
+        inputs: [""]
+        expected: "ArgumentException"
+      - case: "Невалидные символы"
+        inputs: ["#GGGGGG"]
+        expected: "ArgumentException"
+      - case: "Неверная длина"
+        inputs: ["#FFF0"]
+        expected: "ArgumentException"
+
+  # ============================================================
+  # 2. RgbToHex
+  # ============================================================
+  - name: RgbToHex
+    req_functional: ["2"]
+    req_non_functional: ["NFR-2", "NFR-3"]
+    signature: "string RgbToHex(int r, int g, int b)"
+    pre: "0 <= r, g, b <= 255"
+    post: "Возвращает строку '#RRGGBB' в верхнем регистре"
+    equivalence_classes:
+      - case: "Валидные значения"
+        inputs: [255, 0, 0]
+        expected: "\"#FF0000\""
+      - case: "Нули"
+        inputs: [0, 0, 0]
+        expected: "\"#000000\""
+      - case: "Максимум"
+        inputs: [255, 255, 255]
+        expected: "\"#FFFFFF\""
+      - case: "R вне диапазона"
+        inputs: [256, 0, 0]
+        expected: "ArgumentOutOfRangeException"
+      - case: "G отрицательный"
+        inputs: [0, -1, 0]
+        expected: "ArgumentOutOfRangeException"
+      - case: "B вне диапазона"
+        inputs: [0, 0, 300]
+        expected: "ArgumentOutOfRangeException"
+
+  # ============================================================
+  # 3. GetColorName
+  # ============================================================
+  - name: GetColorName
+    req_functional: ["3"]
+    req_non_functional: ["NFR-2"]
+    signature: "string GetColorName(string hex)"
+    pre: "hex != null && !string.IsNullOrWhiteSpace(hex)"
+    post: "Возвращает название цвета из справочника, иначе ArgumentException"
+    equivalence_classes:
+      - case: "Известный цвет (Red)"
+        inputs: ["#FF0000"]
+        expected: "\"Red\""
+      - case: "Известный цвет (Green)"
+        inputs: ["#00FF00"]
+        expected: "\"Green\""
+      - case: "3-значный HEX"
+        inputs: ["#FFF"]
+        expected: "\"White\""
+      - case: "HEX без решётки"
+        inputs: ["0000FF"]
+        expected: "\"Blue\""
+      - case: "Неизвестный цвет"
+        inputs: ["#123456"]
+        expected: "ArgumentException"
+      - case: "Null"
+        inputs: [null]
+        expected: "ArgumentException"
+      - case: "Невалидный HEX"
+        inputs: ["#GGGGGG"]
+        expected: "ArgumentException"
+
+  # ============================================================
+  # 4. NameToHex
+  # ============================================================
+  - name: NameToHex
+    req_functional: ["4"]
+    req_non_functional: ["NFR-2"]
+    signature: "string NameToHex(string name)"
+    pre: "name != null && !string.IsNullOrWhiteSpace(name)"
+    post: "Возвращает HEX из справочника, иначе ArgumentException"
+    equivalence_classes:
+      - case: "Red"
+        inputs: ["Red"]
+        expected: "\"#FF0000\""
+      - case: "Имя в нижнем регистре"
+        inputs: ["red"]
+        expected: "\"#FF0000\""
+      - case: "Имя с пробелами"
+        inputs: ["  Green  "]
+        expected: "\"#00FF00\""
+      - case: "White"
+        inputs: ["White"]
+        expected: "\"#FFFFFF\""
+      - case: "Неизвестное имя"
+        inputs: ["Purple"]
+        expected: "ArgumentException"
+      - case: "Null"
+        inputs: [null]
+        expected: "ArgumentException"
+      - case: "Пустая строка"
+        inputs: [""]
+        expected: "ArgumentException"
